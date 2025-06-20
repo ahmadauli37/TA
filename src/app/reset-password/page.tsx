@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
 import { authAPI } from '@/services/api';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string | null>(null);
@@ -69,9 +69,10 @@ export default function ResetPasswordPage() {
         router.push('/login');
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error);
-      await Swal.fire({ icon: 'error', title: 'Gagal!', text: error.message || 'Gagal mengubah password', confirmButtonText: 'OK' });
+      const errorMessage = error instanceof Error ? error.message : 'Gagal mengubah password';
+      await Swal.fire({ icon: 'error', title: 'Gagal!', text: errorMessage, confirmButtonText: 'OK' });
     } finally {
       setIsLoading(false);
     }
@@ -199,5 +200,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 } 
