@@ -218,7 +218,7 @@ export default function ProfilePage() {
     }
     try {
       setIsLoading(true);
-      let requestBody: any = {
+      const requestBody: any = {
         username: formData.username,
         phone: formData.phone || ''
       };
