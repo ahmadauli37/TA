@@ -2,12 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
+import Swal from 'sweetalert2';
+import Link from 'next/link';
+import { profileAPI, pengaduanAPI, broadcastAPI } from '@/services/api';
 import Header from '@/components/Header';
-import { pengaduanAPI, broadcastAPI, profileAPI } from '@/services/api';
 
-// Interface untuk struktur data pengaduan
+// Interface untuk struktur data tagihan
+interface TagihanDetail {
+  id: number;
+  nama: string;
+  jumlah: number;
+  keterangan?: string;
+}
+
+interface Tagihan {
+  id: number;
+  bulan: string;
+  tahun: string;
+  total: number;
+  status: 'Belum Lunas' | 'Lunas' | 'Jatuh Tempo';
+  tanggalBayar?: string;
+  metodePembayaran?: string;
+  buktiPembayaran?: string;
+  jatuhTempo: string;
+  detail: TagihanDetail[];
+}
+
 interface Pengaduan {
   id: string;
   userId: string;
@@ -20,7 +41,6 @@ interface Pengaduan {
   updatedAt: string;
 }
 
-// Interface untuk struktur data broadcast
 interface Broadcast {
   id: string;
   userId: string;
@@ -38,7 +58,6 @@ interface Broadcast {
   };
 }
 
-// Interface untuk profil pengguna
 interface UserProfile {
   id: string;
   username: string;
@@ -52,7 +71,7 @@ interface UserProfile {
   isVerified: boolean;
 }
 
-// Interface untuk response profil dari API
+// Interface untuk response dari API profile
 interface ProfileResponse {
   message: string;
   data: {
@@ -105,12 +124,15 @@ const menu = [
 export default function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
+  const [userEmail, setUserEmail] = useState('');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [tagihan, setTagihan] = useState<Tagihan | null>(null);
   const [pengaduan, setPengaduan] = useState<Pengaduan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingPengaduan, setLoadingPengaduan] = useState(true);
   const [broadcast, setBroadcast] = useState<Broadcast[]>([]);
-  const [, setLoadingPengaduan] = useState(false);
-  const [, setLoadingBroadcast] = useState(false);
-  const [, setError] = useState<string | null>(null);
+  const [loadingBroadcast, setLoadingBroadcast] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -141,7 +163,7 @@ export default function Dashboard() {
         if (profileData.data.isVerified) {
           try {
             const pengaduanResponseRaw = await pengaduanAPI.getPengaduan(profileData.data.id);
-            const pengaduanResponse = pengaduanResponseRaw.data as { message?: string; data?: Pengaduan[] };
+            const pengaduanResponse = pengaduanResponseRaw.data as { message?: string; data?: any[] };
             if (pengaduanResponse.message?.toLowerCase() === 'success' && Array.isArray(pengaduanResponse.data)) {
               // Sort by tanggalDibuat (newest first)
               const sortedPengaduan = pengaduanResponse.data.sort((a, b) => 
@@ -151,8 +173,8 @@ export default function Dashboard() {
             } else {
               setPengaduan([]);
             }
-          } catch {
-            console.error('Error fetching pengaduan');
+          } catch (error) {
+            console.error('Error fetching pengaduan:', error);
             setPengaduan([]);
           }
         } else {
@@ -163,7 +185,7 @@ export default function Dashboard() {
         if (profileData.data.isVerified) {
           try {
             const broadcastResponseRaw = await broadcastAPI.getAllBroadcast();
-            const broadcastResponse = broadcastResponseRaw.data as { message?: string; data?: Broadcast[] };
+            const broadcastResponse = broadcastResponseRaw.data as { message?: string; data?: any[] };
             if (broadcastResponse.message?.toLowerCase() === 'success' && Array.isArray(broadcastResponse.data)) {
               // Filter for admin broadcasts only (approved status and from admin users)
               const adminBroadcasts = broadcastResponse.data.filter((broadcast) => 
@@ -181,13 +203,14 @@ export default function Dashboard() {
             } else {
               setBroadcast([]);
             }
-          } catch {
+          } catch (error) {
             setBroadcast([]);
           }
         }
-      } catch {
+      } catch (error) {
         setError(null); // Don't show error to user
       } finally {
+        setLoading(false);
         setLoadingPengaduan(false);
         setLoadingBroadcast(false);
       }
@@ -200,6 +223,36 @@ export default function Dashboard() {
   useEffect(() => {
     console.log('userProfile state updated:', userProfile);
   }, [userProfile]);
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: 'Apakah anda yakin ingin logout?',
+      text: "Anda akan keluar dari sistem",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya, logout!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
+      localStorage.removeItem('token');
+      Swal.fire({
+        title: 'Berhasil Logout!',
+        text: 'Anda telah keluar dari sistem',
+        icon: 'success',
+        timer: 1500
+      }).then(() => {
+        router.push('/login');
+      });
+    }
+  };
+
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined) return 'Rp 0';
+    return `Rp ${amount.toLocaleString()}`;
+  };
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '-';
@@ -231,7 +284,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 w-64 h-screen bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm z-40">
+      <aside className="w-64 bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm">
         <div className="flex items-center mb-10">
           <svg className="w-9 h-9 text-blue-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -276,7 +329,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col">
         <Header />
         {/* Content Area */}
         <main className="flex-1 p-8 overflow-y-auto bg-gray-50">

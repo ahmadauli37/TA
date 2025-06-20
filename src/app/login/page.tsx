@@ -3,9 +3,9 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Swal from 'sweetalert2';
+import Image from 'next/image';
 import { authAPI } from '@/services/api';
+import Link from 'next/link';
 
 interface LoginResponse {
   token: string;
@@ -28,22 +28,20 @@ const decrypt = (text: string) => {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
 
     // Validate form before submission
     if (!email || !password) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Email dan password harus diisi',
-      });
+      setError('Email dan password harus diisi');
       return;
     }
 
@@ -65,7 +63,7 @@ export default function LoginPage() {
       localStorage.setItem('userId', data.id.trim());
 
       // Remember me logic
-      if (rememberMe) {
+      if (remember) {
         localStorage.setItem('rememberedEmail', email);
         localStorage.setItem('rememberedPassword', encrypt(password));
       } else {
@@ -80,13 +78,13 @@ export default function LoginPage() {
       });
 
       router.push('/dashboard');
-    } catch {
+    } catch (error) {
+      // Clear any partial data on error
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      
       // Always show the same user-friendly message
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Email atau password yang Anda masukkan salah. Silakan coba lagi.',
-      });
+      setError('Email atau password yang Anda masukkan salah. Silakan coba lagi.');
 
       // Keep the password field focused after error
       const passwordInput = document.getElementById('password') as HTMLInputElement;
@@ -104,7 +102,7 @@ export default function LoginPage() {
     if (rememberedEmail && rememberedPassword) {
       setEmail(rememberedEmail);
       setPassword(decrypt(rememberedPassword));
-      setRememberMe(true);
+      setRemember(true);
     }
   }, []);
 
@@ -174,8 +172,8 @@ export default function LoginPage() {
                 id="remember"
                 name="remember"
                 type="checkbox"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
+                checked={remember}
+                onChange={() => setRemember(!remember)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">

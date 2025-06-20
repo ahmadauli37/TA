@@ -632,7 +632,7 @@ export default function IuranPage() {
       <Toaster />
       <div className="flex min-h-screen bg-gray-50">
         {/* Sidebar */}
-        <aside className="fixed left-0 top-0 w-64 h-screen bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm z-40">
+        <aside className="w-64 bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm">
           <div className="flex items-center mb-10">
             <svg className="w-9 h-9 text-blue-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -657,7 +657,7 @@ export default function IuranPage() {
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col ml-64">
+        <div className="flex-1 flex flex-col">
           <Header />
           {/* Content Area */}
           <main className="flex-1 p-8 overflow-y-auto">
