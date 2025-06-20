@@ -4,8 +4,6 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
-import Image from 'next/image';
-import toast, { Toaster } from 'react-hot-toast';
 import Header from '@/components/Header';
 import { broadcastAPI } from '@/services/api';
 
@@ -25,12 +23,7 @@ interface Broadcast {
   };
 }
 
-interface UserProfile {
-  id: string;
-  username: string | null;
-  email: string;
-  role: 'user' | 'admin';
-}
+
 
 const menu = [
   { name: 'Home', icon: (
@@ -72,7 +65,6 @@ export default function BroadcastPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'my'>('all');
   const [showForm, setShowForm] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState({
     kategori: '' as Broadcast['kategori'] | '',
     konten: '',
@@ -81,9 +73,7 @@ export default function BroadcastPage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedBroadcast, setSelectedBroadcast] = useState<Broadcast | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [myBroadcasts, setMyBroadcasts] = useState<Broadcast[]>([]);
   const [loadingMyBroadcasts, setLoadingMyBroadcasts] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -140,7 +130,7 @@ export default function BroadcastPage() {
         // Fetch all broadcasts
         console.log('8. Fetching all broadcasts');
         const response = await broadcastAPI.getAllBroadcast();
-        const data = response.data as { message?: string; data?: any[] };
+        const data = response.data as { message?: string; data?: Broadcast[] };
         if (data.message?.toLowerCase() === 'success' && Array.isArray(data.data)) {
           setBroadcasts(data.data);
         } else {
@@ -152,34 +142,47 @@ export default function BroadcastPage() {
         setLoadingMyBroadcasts(true);
         try {
           const myResponse = await broadcastAPI.getUserBroadcast(userId);
-          const myData = myResponse.data as { message?: string; data?: any[] };
+          const myData = myResponse.data as { message?: string; data?: Broadcast[] };
           if (myData.message?.toLowerCase() === 'success' && Array.isArray(myData.data)) {
             setMyBroadcasts(myData.data);
           } else {
             setMyBroadcasts([]);
           }
-        } catch (userBroadcastError: any) {
+        } catch (userBroadcastError: unknown) {
           // If 404, just set empty array (no data found is normal)
-          if (userBroadcastError?.response?.status === 404) {
-            setMyBroadcasts([]);
+          if (userBroadcastError && typeof userBroadcastError === 'object' && 'response' in userBroadcastError) {
+            const errorResponse = userBroadcastError as { response?: { status?: number } };
+            if (errorResponse?.response?.status === 404) {
+              setMyBroadcasts([]);
+            } else {
+              // For other errors, log but don't show popup
+              console.error('Error fetching user broadcasts:', userBroadcastError);
+              setMyBroadcasts([]);
+            }
           } else {
-            // For other errors, log but don't show popup
             console.error('Error fetching user broadcasts:', userBroadcastError);
             setMyBroadcasts([]);
           }
         }
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('10. Error loading broadcasts:', error);
-        if (error?.response?.status === 401) {
-          console.log('11. Unauthorized access detected, clearing auth data and redirecting to login');
-          localStorage.removeItem('token');
-          localStorage.removeItem('userId');
-          router.push('/login');
-        } else if (error?.response?.status === 404) {
-          // 404 is normal for empty data, just set empty arrays
-          setBroadcasts([]);
-          setMyBroadcasts([]);
+        if (error && typeof error === 'object' && 'response' in error) {
+          const errorResponse = error as { response?: { status?: number } };
+          if (errorResponse?.response?.status === 401) {
+            console.log('11. Unauthorized access detected, clearing auth data and redirecting to login');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            router.push('/login');
+          } else if (errorResponse?.response?.status === 404) {
+            // 404 is normal for empty data, just set empty arrays
+            setBroadcasts([]);
+            setMyBroadcasts([]);
+          } else {
+            await Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal memuat data broadcast', confirmButtonText: 'OK' });
+            setBroadcasts([]);
+            setMyBroadcasts([]);
+          }
         } else {
           await Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal memuat data broadcast', confirmButtonText: 'OK' });
           setBroadcasts([]);
@@ -200,33 +203,7 @@ export default function BroadcastPage() {
     }
   }, [broadcasts]);
 
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: 'Apakah anda yakin ingin logout?',
-      text: "Anda akan keluar dari sistem",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Ya, logout!',
-      cancelButtonText: 'Batal'
-    });
 
-    if (result.isConfirmed) {
-      // Clear all auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      
-      Swal.fire({
-        title: 'Berhasil Logout!',
-        text: 'Anda telah keluar dari sistem',
-        icon: 'success',
-        timer: 1500
-      }).then(() => {
-        router.push('/login');
-      });
-    }
-  };
 
   const formatDateTime = (dateString: string) => {
     try {
@@ -351,7 +328,7 @@ export default function BroadcastPage() {
         setMyBroadcasts(myBroadcasts.filter(b => b.id !== broadcastId));
         localStorage.setItem('broadcasts', JSON.stringify(updatedList));
         Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Broadcast berhasil dihapus', confirmButtonText: 'OK' });
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error deleting broadcast:', error);
         await Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Gagal menghapus broadcast', confirmButtonText: 'OK' });
       }
@@ -384,8 +361,12 @@ export default function BroadcastPage() {
       setFormData({ kategori: '' as Broadcast['kategori'] | '', konten: '', tanggalEvent: '', foto: null });
       setPreviewUrl(null);
       setShowForm(false);
-      // Refresh broadcasts
-      const updatedResponse = await broadcastAPI.getUserBroadcast(userId);
+      // Refresh broadcasts by refetching
+      const myResponse = await broadcastAPI.getUserBroadcast(userId);
+      const myData = myResponse.data as { message?: string; data?: Broadcast[] };
+      if (myData.message?.toLowerCase() === 'success' && Array.isArray(myData.data)) {
+        setMyBroadcasts(myData.data);
+      }
 
       Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Broadcast berhasil dibuat', confirmButtonText: 'OK' });
     } catch (error) {

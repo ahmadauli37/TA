@@ -37,7 +37,7 @@ export default function Header() {
         setUserProfile(userProfileData);
         // Update localStorage to keep it in sync
         localStorage.setItem('userProfile', JSON.stringify(userProfileData));
-      } catch (error) {
+      } catch {
         // Fallback to localStorage if API call fails
         const savedProfile = localStorage.getItem('userProfile');
         if (savedProfile) {
@@ -48,8 +48,8 @@ export default function Header() {
               email: parsedProfile.email,
               role: parsedProfile.role
             });
-          } catch (error) {
-            console.error('Error parsing user profile:', error);
+          } catch (parseError) {
+            console.error('Error parsing user profile:', parseError);
           }
         }
       }

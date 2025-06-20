@@ -204,7 +204,7 @@ export const paymentAPI = {
   checkTransactionStatus: (orderId: string) => 
     api.get(`/user/payment/check-status/${orderId}`),
   
-  handlePaymentNotification: (data: any) => 
+  handlePaymentNotification: (data: Record<string, unknown>) => 
     api.post('/user/payment/notification', data),
 };
 
