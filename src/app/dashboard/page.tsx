@@ -2,33 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
-import Swal from 'sweetalert2';
 import Link from 'next/link';
-import { profileAPI, pengaduanAPI, broadcastAPI } from '@/services/api';
+import Image from 'next/image';
 import Header from '@/components/Header';
+import { pengaduanAPI, broadcastAPI, profileAPI } from '@/services/api';
 
-// Interface untuk struktur data tagihan
-interface TagihanDetail {
-  id: number;
-  nama: string;
-  jumlah: number;
-  keterangan?: string;
-}
-
-interface Tagihan {
-  id: number;
-  bulan: string;
-  tahun: string;
-  total: number;
-  status: 'Belum Lunas' | 'Lunas' | 'Jatuh Tempo';
-  tanggalBayar?: string;
-  metodePembayaran?: string;
-  buktiPembayaran?: string;
-  jatuhTempo: string;
-  detail: TagihanDetail[];
-}
-
+// Interface untuk struktur data pengaduan
 interface Pengaduan {
   id: string;
   userId: string;
@@ -41,6 +20,7 @@ interface Pengaduan {
   updatedAt: string;
 }
 
+// Interface untuk struktur data broadcast
 interface Broadcast {
   id: string;
   userId: string;
@@ -58,6 +38,7 @@ interface Broadcast {
   };
 }
 
+// Interface untuk profil pengguna
 interface UserProfile {
   id: string;
   username: string;
@@ -71,7 +52,7 @@ interface UserProfile {
   isVerified: boolean;
 }
 
-// Interface untuk response dari API profile
+// Interface untuk response profil dari API
 interface ProfileResponse {
   message: string;
   data: {
@@ -124,15 +105,12 @@ const menu = [
 export default function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
-  const [userEmail, setUserEmail] = useState('');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [tagihan, setTagihan] = useState<Tagihan | null>(null);
   const [pengaduan, setPengaduan] = useState<Pengaduan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingPengaduan, setLoadingPengaduan] = useState(true);
   const [broadcast, setBroadcast] = useState<Broadcast[]>([]);
-  const [loadingBroadcast, setLoadingBroadcast] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setLoadingPengaduan] = useState(false);
+  const [, setLoadingBroadcast] = useState(false);
+  const [, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,7 +141,7 @@ export default function Dashboard() {
         if (profileData.data.isVerified) {
           try {
             const pengaduanResponseRaw = await pengaduanAPI.getPengaduan(profileData.data.id);
-            const pengaduanResponse = pengaduanResponseRaw.data as { message?: string; data?: any[] };
+            const pengaduanResponse = pengaduanResponseRaw.data as { message?: string; data?: Pengaduan[] };
             if (pengaduanResponse.message?.toLowerCase() === 'success' && Array.isArray(pengaduanResponse.data)) {
               // Sort by tanggalDibuat (newest first)
               const sortedPengaduan = pengaduanResponse.data.sort((a, b) => 
@@ -173,8 +151,8 @@ export default function Dashboard() {
             } else {
               setPengaduan([]);
             }
-          } catch (error) {
-            console.error('Error fetching pengaduan:', error);
+          } catch {
+            console.error('Error fetching pengaduan');
             setPengaduan([]);
           }
         } else {
@@ -185,7 +163,7 @@ export default function Dashboard() {
         if (profileData.data.isVerified) {
           try {
             const broadcastResponseRaw = await broadcastAPI.getAllBroadcast();
-            const broadcastResponse = broadcastResponseRaw.data as { message?: string; data?: any[] };
+            const broadcastResponse = broadcastResponseRaw.data as { message?: string; data?: Broadcast[] };
             if (broadcastResponse.message?.toLowerCase() === 'success' && Array.isArray(broadcastResponse.data)) {
               // Filter for admin broadcasts only (approved status and from admin users)
               const adminBroadcasts = broadcastResponse.data.filter((broadcast) => 
@@ -203,14 +181,13 @@ export default function Dashboard() {
             } else {
               setBroadcast([]);
             }
-          } catch (error) {
+          } catch {
             setBroadcast([]);
           }
         }
-      } catch (error) {
+      } catch {
         setError(null); // Don't show error to user
       } finally {
-        setLoading(false);
         setLoadingPengaduan(false);
         setLoadingBroadcast(false);
       }
@@ -223,36 +200,6 @@ export default function Dashboard() {
   useEffect(() => {
     console.log('userProfile state updated:', userProfile);
   }, [userProfile]);
-
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: 'Apakah anda yakin ingin logout?',
-      text: "Anda akan keluar dari sistem",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Ya, logout!',
-      cancelButtonText: 'Batal'
-    });
-
-    if (result.isConfirmed) {
-      localStorage.removeItem('token');
-      Swal.fire({
-        title: 'Berhasil Logout!',
-        text: 'Anda telah keluar dari sistem',
-        icon: 'success',
-        timer: 1500
-      }).then(() => {
-        router.push('/login');
-      });
-    }
-  };
-
-  const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined) return 'Rp 0';
-    return `Rp ${amount.toLocaleString()}`;
-  };
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '-';

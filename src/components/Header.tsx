@@ -37,7 +37,7 @@ export default function Header() {
         setUserProfile(userProfileData);
         // Update localStorage to keep it in sync
         localStorage.setItem('userProfile', JSON.stringify(userProfileData));
-      } catch (error) {
+      } catch {
         // Fallback to localStorage if API call fails
         const savedProfile = localStorage.getItem('userProfile');
         if (savedProfile) {

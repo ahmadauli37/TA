@@ -199,7 +199,18 @@ export const paymentAPI = {
   checkTransactionStatus: (orderId: string) => 
     api.get(`/user/payment/check-status/${orderId}`),
   
-  handlePaymentNotification: (data: any) => 
+  handlePaymentNotification: (data: {
+    order_id: string;
+    status_code: string;
+    gross_amount: string;
+    signature_key: string;
+    payment_type: string;
+    signature: string;
+    transaction_status: string;
+    transaction_id: string;
+    fraud_status: string;
+    merchant_order_id: string;
+  }) => 
     api.post('/user/payment/notification', data),
 };
 
