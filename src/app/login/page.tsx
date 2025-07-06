@@ -292,7 +292,7 @@ export default function LoginPage() {
       {/* Desktop Layout */}
       <div className="hidden lg:flex min-h-screen">
         {/* Left Section - Blue Background */}
-        <div className="lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 items-center justify-center p-8 relative overflow-hidden">
+        <div className="lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center p-8 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full"></div>
