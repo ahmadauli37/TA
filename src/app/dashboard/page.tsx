@@ -284,7 +284,7 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white text-gray-800 flex flex-col py-8 px-4 border-r border-gray-200 shadow-sm z-10">
         <div className="flex items-center mb-10">
           <svg className="w-9 h-9 text-blue-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -329,7 +329,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64">
         <Header />
         {/* Content Area */}
         <main className="flex-1 p-8 overflow-y-auto bg-gray-50">
@@ -341,15 +341,9 @@ export default function Dashboard() {
               <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-48 h-48 bg-blue-500 rounded-full opacity-20 blur-2xl"></div>
               
               <div className="relative">
-                <div className="flex items-center justify-between mb-6">
+                <div className="mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-1">Selamat Datang, {userProfile?.username || 'Pengguna'}</h2>
-                    <p className="text-blue-100">Selamat datang kembali di Cherry Field</p>
-                  </div>
-                  <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
                   </div>
                 </div>
 

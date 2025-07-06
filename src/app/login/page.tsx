@@ -128,6 +128,16 @@ export default function LoginPage() {
             <h2 className="text-lg font-bold mb-4 text-gray-900 text-center">Welcome</h2>
             
             <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              )}
               <div>
                 <label htmlFor="mobile-email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                 <input
@@ -408,6 +418,16 @@ export default function LoginPage() {
             <div className="w-full">
               <h2 className="text-xl font-bold mb-4 text-gray-900 text-left">Welcome</h2>
               <form className="w-full space-y-4" onSubmit={handleSubmit} noValidate>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                   <input
