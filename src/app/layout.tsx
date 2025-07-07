@@ -15,15 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Residence Penghuni - Cherry Field Housing Management",
   description: "Aplikasi pengelolaan penghuni Cherry Field",
-  icons: {
-    icon: [
-      {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
-      }
-    ],
-    shortcut: '/favicon.svg',
-  },
 };
 
 export default function RootLayout({
