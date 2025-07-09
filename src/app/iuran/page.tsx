@@ -791,7 +791,7 @@ export default function IuranPage() {
                                     Iuran {getNamaBulan(iuran.bulan)} {iuran.tahun}
                                   </h3>
                                   <p className="text-sm text-gray-500 mt-1">
-                                    ID: {iuran.id.slice(0, 8)}...
+                                    Jatuh Tempo: {iuran.jatuhTempo ? formatDateTime(iuran.jatuhTempo) : '-'}
                                   </p>
                                 </div>
                               </div>
