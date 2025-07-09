@@ -790,9 +790,6 @@ export default function IuranPage() {
                                   <h3 className="text-lg font-bold text-gray-900">
                                     Iuran {getNamaBulan(iuran.bulan)} {iuran.tahun}
                                   </h3>
-                                  <p className="text-sm text-gray-500 mt-1">
-                                    Jatuh Tempo: {iuran.jatuhTempo ? formatDateTime(iuran.jatuhTempo) : '-'}
-                                  </p>
                                 </div>
                               </div>
                               <div className="text-right">
